@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/edit_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/background"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:id="@+id/button_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center_horizontal"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/saveButton"
+                style="@style/TopButtonFont"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="sans-serif"
+                android:onClick="saveChanges"
+                android:text="save" />
+
+            <Button
+                android:id="@+id/previousButton"
+                style="@style/TopButtonFont"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_column="1"
+                android:layout_row="1"
+                android:layout_weight="1"
+                android:onClick="previousQuestion"
+                android:text="@string/previous" />
+
+            <Button
+                android:id="@+id/nextButton"
+                style="@style/TopButtonFont"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_column="0"
+                android:layout_row="1"
+                android:layout_weight="1"
+                android:onClick="nextQuestion"
+                android:text="@string/next" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center_horizontal"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/deleteButton"
+                style="@style/TopButtonFont"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_column="2"
+                android:layout_row="1"
+                android:layout_weight="1"
+                android:onClick="deleteQuestion"
+                android:text="delete question" />
+
+            <Button
+                android:id="@+id/addQuestion"
+                style="@style/TopButtonFont"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:onClick="addQuestion"
+                android:text="add question" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center_horizontal"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/setAnswer"
+                style="@style/TopButtonFont"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:onClick="setCorrectAnswer"
+                android:text="set correct answer" />
+
+            <Button
+                android:id="@+id/deleteAnswer"
+                style="@style/TopButtonFont"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:onClick="deleteAnswer"
+                android:text="delete answer" />
+
+            <Button
+                android:id="@+id/addAnswer"
+                style="@style/TopButtonFont"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_column="2"
+                android:layout_row="0"
+                android:layout_weight="1"
+                android:onClick="addAnswer"
+                android:text=" add answer" />
+        </LinearLayout>
+
+    </LinearLayout>
+</LinearLayout>

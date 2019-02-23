@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <drawable name="background">@drawable/blank_background</drawable>
+    <dimen name="main_button_size">24sp</dimen>
+</resources>

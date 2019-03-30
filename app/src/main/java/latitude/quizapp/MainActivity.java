@@ -26,7 +26,6 @@ public class MainActivity extends AppCompatActivity {
 
     public void launchQuiz(View view) {
         Intent intent = new Intent(this, SelectionActivity.class);
-        intent.putExtra("remove_button", "true");
         this.startActivityForResult(intent, LAUNCH_QUIZ);
     }
 

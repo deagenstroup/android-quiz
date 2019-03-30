@@ -14,29 +14,30 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.RadioButton;
 
 import java.io.DataInputStream;
-import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
-public class SelectionActivity extends AppCompatActivity implements View.OnClickListener {
+public class SelectionActivity extends AppCompatActivity {
 
     public static final String QUIZ_LIST_FILE = "quiz_list";
 
-    public static final int DELETE_MODE = 1,
-                            RENAME_MODE = 2;
+    private ArrayList<RadioButton> buttons;
 
-    private int mode;
+    /**
+     * The currently selected button.
+     */
+    private RadioButton selectedButton;
 
-    private String dialogFilename = null;
-
-    private String oldFileName;
-
-    private ArrayList<Button> buttons;
+    /**
+     * The filename of the currently selected quiz
+     */
+    private String selectedFilename;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,22 +45,24 @@ public class SelectionActivity extends AppCompatActivity implements View.OnClick
         setContentView(R.layout.activity_selection);
         String str = this.getIntent().getStringExtra("remove_button");
         if(str != null && str.equals("true"))
-            ((ViewGroup)this.findViewById(R.id.selection_button_layout)).removeView(this.findViewById(R.id.newQuiz));
+            ((ViewGroup)this.findViewById(R.id.button_layout_row1)).removeView(this.findViewById(R.id.newQuiz));
         this.initializeButtons();
         this.logFiles();
     }
 
     private void initializeButtons() {
         ArrayList<String> strings = this.readFileNames();
-        buttons = new ArrayList<>();
+        buttons = new ArrayList<RadioButton>();
 
         for(int i = 0; i < strings.size(); i++) {
-            Button newButton = new Button(this);
+            RadioButton newButton = new RadioButton(this);
             newButton.setId(57458+i);
             newButton.setText(strings.get(i));
-            newButton.setOnClickListener(this);
+            newButton.setOnClickListener((v) -> {
+                checkButton(newButton);
+            });
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            params.gravity = Gravity.CENTER;
+            params.gravity = Gravity.LEFT;
             newButton.setLayoutParams(params);
             newButton.setTextAppearance(this, R.style.TopButtonFont);
             newButton.setAllCaps(false);
@@ -70,46 +73,87 @@ public class SelectionActivity extends AppCompatActivity implements View.OnClick
 
     }
 
-    private ArrayList<String> readFileNames() {
-        ArrayList<String> strings = new ArrayList<>();
 
-        DataInputStream stream = null;
-        try {
-            stream = new DataInputStream(this.getApplicationContext().openFileInput(QUIZ_LIST_FILE));
+    public void setSelectedFilename(String str) { selectedFilename = str; }
 
-            String str;
-            while(true) {
-                str = stream.readUTF();
-                strings.add(str);
-            }
-        } catch(EOFException e) {
-            try {
-                if (stream != null)
-                    stream.close();
-            } catch(IOException exp) {
-                exp.printStackTrace();
-            }
-        } catch(IOException e) {
-            e.printStackTrace();
-        }
-
-        return strings;
+    public String getSelectedFilename() {
+        return selectedFilename;
     }
 
-    private void writeFileNames(ArrayList<String> filenames) {
-        DataOutputStream stream = null;
-        try {
-            stream = new DataOutputStream(this.getApplicationContext().openFileOutput(QUIZ_LIST_FILE, Context.MODE_PRIVATE));
-            for(String filename : filenames) {
-                stream.writeUTF(filename);
+    /**
+     * Creates a new quiz object and exits the activity
+     * @param filename The filename of the new quiz
+     */
+    public void addQuiz(String filename) {
+        if(filename == null)
+            return;
+
+        //write file name to list
+        ArrayList<String> filenames = this.readFileNames();
+        filenames.add(filename);
+        this.writeFileNames(filenames);
+
+        //create a blank quiz object and write to file
+        Quiz quiz = new Quiz(this);
+        quiz.writeToFile(filename);
+
+        //return filename from activity
+        Intent returnIntent = new Intent();
+        returnIntent.putExtra("filename", filename);
+        this.setResult(Activity.RESULT_OK, returnIntent);
+        this.finish();
+    }
+
+    public void removeQuiz(String filename) {
+        //remove file from file list
+        ArrayList<String> strings = this.readFileNames();
+        strings.remove(filename);
+        this.writeFileNames(strings);
+        //delete file from app space
+        this.getApplicationContext().deleteFile(filename);
+
+        for(int i = 0; i < buttons.size(); i++) {
+            if(buttons.get(i).getText().equals(filename)) {
+                ((LinearLayout)this.findViewById(R.id.linear_list)).removeView(buttons.get(i));
+                buttons.remove(i);
+                return;
             }
-            stream.close();
-        } catch(IOException e) {
-            e.printStackTrace();
         }
     }
 
+    /**
+     * Renames a quiz
+     * @param oldFilename The filename of the quiz to be renamed
+     * @param filename The new filename of the quiz
+     */
+    public void renameQuiz(String filename, String oldFilename) {
+        ArrayList<String> filenames = this.readFileNames();
+        filenames.remove(oldFilename);
+        filenames.add(filename);
+        this.writeFileNames(filenames);
+
+        File file = new File(this.getApplicationContext().getFilesDir(), oldFilename);
+        File to = new File(this.getApplicationContext().getFilesDir(), filename);
+        file.renameTo(to);
+
+        for(int i = 0; i < buttons.size(); i++) {
+            Button button = buttons.get(i);
+            if(button.getText().equals(oldFilename)) {
+                button.setText(filename);
+                return;
+            }
+        }
+        //this.logFiles();
+    }
+
+    /**
+     * Prompts the user for a string and either renames an existing quiz or creates a new one
+     * with the userinput
+     * @param rename If true, the currently selected filename is renamed with the user input.
+     *               If false, a new quiz is created with the filename.
+     */
     private void promptForString(final boolean rename) {
+        String returnStr = null;
         class PromptRunnable implements Runnable {
             private String v;
             void setValue(String inV) {
@@ -119,11 +163,11 @@ public class SelectionActivity extends AppCompatActivity implements View.OnClick
                 return this.v;
             }
             public void run() {
-                dialogFilename = this.getValue();
+                String promptedString = this.getValue();
                 if(rename)
-                    renameQuiz1();
+                    renameQuiz(promptedString, getSelectedFilename());
                 else
-                    addQuiz1();
+                    addQuiz(promptedString);
             }
         }
 
@@ -153,93 +197,92 @@ public class SelectionActivity extends AppCompatActivity implements View.OnClick
         builder.show();
     }
 
-    public void addQuiz(View view) {
-        this.promptForString(false);
+
+
+    /**
+     * Reads a list of the available quizzes from a file whose name is stored in QUIZ_LIST_FILE
+     * @return A list of names of available quizzes
+     */
+    private ArrayList<String> readFileNames() {
+        ArrayList<String> strings = new ArrayList<>();
+
+        DataInputStream stream = null;
+        try {
+            stream = new DataInputStream(this.getApplicationContext().openFileInput(QUIZ_LIST_FILE));
+
+            String str;
+            while(true) {
+                str = stream.readUTF();
+                strings.add(str);
+            }
+        } catch(EOFException e) {
+            try {
+                if (stream != null)
+                    stream.close();
+            } catch(IOException exp) {
+                exp.printStackTrace();
+            }
+        } catch(IOException e) {
+            e.printStackTrace();
+        }
+
+        return strings;
     }
 
-    public void addQuiz1() {
-        if(dialogFilename == null)
+    /**
+     * Writes a list of the available quizzes to a file whose name is stored in QUIZ_LIST_FILE
+     * @param filenames A list of names of available quizzes
+     */
+    private void writeFileNames(ArrayList<String> filenames) {
+        DataOutputStream stream = null;
+        try {
+            stream = new DataOutputStream(this.getApplicationContext().openFileOutput(QUIZ_LIST_FILE, Context.MODE_PRIVATE));
+            for(String filename : filenames) {
+                stream.writeUTF(filename);
+            }
+            stream.close();
+        } catch(IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void checkButton(RadioButton inButton) {
+        if(selectedButton != null)
+            selectedButton.setChecked(false);
+        setSelectedFilename(inButton.getText().toString());
+        inButton.setChecked(true);
+        selectedButton = inButton;
+    }
+
+    public void startHandler(View view) {
+        if(selectedFilename == null)
             return;
-
-        //write file name to list
-        ArrayList<String> filenames = this.readFileNames();
-        filenames.add(dialogFilename);
-        this.writeFileNames(filenames);
-
-        //create a blank quiz object and write to file
-        Quiz quiz = new Quiz(this);
-        quiz.writeToFile(dialogFilename);
-
-        //return filename from activity
         Intent returnIntent = new Intent();
-        returnIntent.putExtra("filename", dialogFilename);
+        returnIntent.putExtra("filename", selectedFilename);
         this.setResult(Activity.RESULT_OK, returnIntent);
         this.finish();
     }
 
-    public void renameQuiz1() {
-        ArrayList<String> filenames = this.readFileNames();
-        filenames.remove(oldFileName);
-        filenames.add(dialogFilename);
-        this.writeFileNames(filenames);
-
-        File file = new File(this.getApplicationContext().getFilesDir(), oldFileName);
-        File to = new File(this.getApplicationContext().getFilesDir(), dialogFilename);
-        file.renameTo(to);
-
-        for(int i = 0; i < buttons.size(); i++) {
-            Button button = buttons.get(i);
-            if(button.getText().equals(oldFileName)) {
-                button.setText(dialogFilename);
-                mode = 0;
-                return;
-            }
-        }
-        //this.logFiles();
+    /**
+     * Handler for newQuiz button,
+     * Prompts the user and creates a new quiz.
+     */
+    public void newHandler(View view) {
+        if(selectedFilename == null)
+            return;
+        this.promptForString(false);
     }
 
-    public void removeQuiz(String filename) {
-        //remove file from file list
-        ArrayList<String> strings = this.readFileNames();
-        strings.remove(filename);
-        this.writeFileNames(strings);
-        //delete file from app space
-        this.getApplicationContext().deleteFile(filename);
-
-        for(int i = 0; i < buttons.size(); i++) {
-            if(buttons.get(i).getText().equals(filename)) {
-                ((LinearLayout)this.findViewById(R.id.linear_list)).removeView(buttons.get(i));
-                buttons.remove(i);
-                mode = 0;
-                return;
-            }
-        }
+    public void renameHandler(View view) {
+        if(selectedFilename == null)
+            return;
+        this.promptForString(true);
     }
 
-    public void onClick(View view) {
-        Button button = (Button) view;
-        if(mode == RENAME_MODE) {
-            //this.logFiles();
-            oldFileName = button.getText().toString();
-            this.promptForString(true);
-        } else if(mode == DELETE_MODE) {
-            String filename = button.getText().toString();
-            this.removeQuiz(filename);
-            mode = 0;
-        } else {
-            Intent returnIntent = new Intent();
-            returnIntent.putExtra("filename", button.getText());
-            this.setResult(Activity.RESULT_OK, returnIntent);
-            this.finish();
-        }
-    }
-
-    public void renameQuiz(View view) {
-        mode = RENAME_MODE;
-    }
-
-    public void deleteQuiz(View view) {
-        mode = DELETE_MODE;
+    public void deleteHandler(View view) {
+        if(selectedFilename == null)
+            return;
+        this.removeQuiz(selectedFilename);
     }
 
     //DEBUG

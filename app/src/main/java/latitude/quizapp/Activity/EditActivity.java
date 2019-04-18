@@ -1,15 +1,20 @@
-package latitude.quizapp;
+package latitude.quizapp.Activity;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.LinearLayout;
 
+import latitude.quizapp.Question.Question;
+import latitude.quizapp.Question.MultipleChoiceQuestion;
+import latitude.quizapp.Quiz;
+import latitude.quizapp.R;
+
 public class EditActivity extends AppCompatActivity {
 
     private Quiz quiz;
 
-    private Question currentQuestion;
+    private MultipleChoiceQuestion currentQuestion;
 
     private final int NOTHING = 1,
                       DELETE = 2,
@@ -27,7 +32,7 @@ public class EditActivity extends AppCompatActivity {
 
         this.initializeGUI();
 
-        currentQuestion = quiz.getCurrentQuestion();
+        currentQuestion = (MultipleChoiceQuestion)quiz.getCurrentQuestion();
         this.setQuestion(currentQuestion);
     }
 
@@ -48,7 +53,7 @@ public class EditActivity extends AppCompatActivity {
 
     public void addQuestion(View inView) {
         EditActivity blank = this;
-        quiz.addQuestion(new Question(quiz, Question.Mode.EDIT));
+        quiz.addQuestion(new MultipleChoiceQuestion(quiz, Question.Mode.EDIT));
     }
 
     public void deleteQuestion(View inView) {
@@ -83,7 +88,7 @@ public class EditActivity extends AppCompatActivity {
         }
     }
 
-    private void setQuestion(Question inQ) {
+    private void setQuestion(MultipleChoiceQuestion inQ) {
         LinearLayout layout = (LinearLayout) findViewById(R.id.edit_layout);
         if(currentQuestion != null)
             layout.removeView(currentQuestion.getContainer());

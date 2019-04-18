@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="latitude.quizapp.TestActivity">
+    tools:context="latitude.quizapp.Activity.TestActivity">
 
     <RadioGroup
         android:layout_width="wrap_content"

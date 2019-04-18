@@ -1,10 +1,6 @@
-package latitude.quizapp;
+package latitude.quizapp.Question;
 
-import android.content.Context;
 import android.app.Activity;
-import android.support.constraint.ConstraintLayout;
-import android.support.constraint.ConstraintSet;
-import android.text.Layout;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -12,49 +8,29 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
-import android.widget.RadioGroup;
 import android.widget.TextView;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.util.ArrayList;
 
-/** Test **/
+import latitude.quizapp.Quiz;
+import latitude.quizapp.R;
 
 /**
- * Class which represents a single question itself and does not contain any sort of interface
- * or GUI for the question.
+ * A question which allows the user to pick one of many multiple choice answers.
  */
-public class Question {
+
+public class MultipleChoiceQuestion extends Question {
 
     //graphical objects
-    private LinearLayout container;
-
-    private TextView questionText;
-
     private ArrayList<LinearLayout> answerContainers;
-
     private ArrayList<TextView> answerTexts;
-
     private ArrayList<RadioButton> answerButtons;
 
     /**
-     * True if the graphical elements of the question (textviews, buttons, etc.) have been initialized.
+     * An array of strings containing all of the possible answers to the question.
      */
-    private boolean guiInitialized;
-
-    public enum Mode {
-        QUIZ,
-        EDIT,
-        GRADE
-    }
-
-    private Mode mode;
-
-    private Quiz quiz;
-
-    private String question;
-
     private ArrayList<String> answers;
 
     /**
@@ -66,17 +42,16 @@ public class Question {
      * The index of the answers array which represents the answer that the user submitted.
      */
     private int indexOfSubmitted;
-
+    // Multiple Choice
     private int indexOfSelected;
 
     {
-        guiInitialized = false;
         indexOfCorrect = -1;
         indexOfSubmitted = -1;
         indexOfSelected = -1;
     }
 
-    public Question() {
+    public MultipleChoiceQuestion() {
         question = "What is 2+2?";
         answers = new ArrayList<>();
         answers.add("four");
@@ -84,10 +59,10 @@ public class Question {
     }
 
     /**
-     * The full constructor.
+     * Full constructor
      */
-    public Question(String inQuestion, ArrayList<String> inAnswers,
-                    int inIndex, Quiz inQuiz, Mode inMode) {
+    public MultipleChoiceQuestion(String inQuestion, ArrayList<String> inAnswers,
+                                  int inIndex, Quiz inQuiz, Mode inMode) {
         question = inQuestion;
         answers = inAnswers;
         indexOfCorrect = inIndex;
@@ -99,16 +74,16 @@ public class Question {
     }
 
     /**
-     * The default constructor.
+     * Default constructor
      */
-    public Question(Quiz inQuiz, Mode inMode) {
+    public MultipleChoiceQuestion(Quiz inQuiz, Mode inMode) {
         this("question", new ArrayList<String>(), 0, inQuiz, inMode);
     }
 
     /**
      * The file constructor.
      */
-    public Question(DataInputStream stream, Quiz inQuiz, Mode inMode) {
+    public MultipleChoiceQuestion(DataInputStream stream, Quiz inQuiz, Mode inMode) {
         quiz = inQuiz;
         mode = inMode;
         this.readFromStream(stream);
@@ -117,30 +92,10 @@ public class Question {
         }
     }
 
-    //GUI
+    // GUI
 
-    public void initializeContainer(Activity activity) {
-        Context context = activity.getApplicationContext();
-        container = new LinearLayout(context);
-        container.setId( (int)(Math.random() * 65000d) );
-        container.setOrientation(LinearLayout.VERTICAL);
-
-        //setting the size of the container
-        container.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-
-        //creating the question text at the top
-        TextView questionText;
-        if(mode == Mode.EDIT) {
-            questionText = new EditText(activity);
-        } else {
-            questionText = new TextView(activity);
-        }
-        questionText.setText(this.getQuestion());
-        questionText.setTextAppearance(container.getContext(), R.style.QuestionFont);
-        questionText.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-
-        container.addView(questionText);
-
+    public void initalizeContainer(Activity activity) {
+        super.initializeContainer(activity);
         answerContainers = new ArrayList<>();
         answerButtons = new ArrayList<>();
         answerTexts = new ArrayList<>();
@@ -152,8 +107,6 @@ public class Question {
 
             this.addAnswerContainer(answer, i);
         }
-
-        guiInitialized = true;
     }
 
     private void addAnswerContainer(String answer, int i) {
@@ -177,7 +130,7 @@ public class Question {
             newButton = new RadioButton(container.getContext());
             final char c = (char) (65 + i);
             newButton.setText("" + c + ": ");
-            final Question q = this;
+            final MultipleChoiceQuestion q = this;
             final int index = i;
             if (mode == Mode.EDIT) {
                 newButton.setOnClickListener(new View.OnClickListener() {
@@ -193,7 +146,7 @@ public class Question {
                         q.indexOfSelected = index;
                         Button button = (Button) v;
                         int c = (int) button.getText().charAt(0);
-                        quiz.getCurrentQuestion().submitAnswer(c - 65);
+                        ((MultipleChoiceQuestion)quiz.getCurrentQuestion()).submitAnswer(c - 65);
                     }
                 });
             }
@@ -226,50 +179,6 @@ public class Question {
         }
     }
 
-    /**
-     * Used to create a special kind of question object which basically just serves as
-     * a container for a grading screen which is put at the beginning of the quiz when the
-     * user pushes the button for the quiz to be graded.
-     * @param activity
-     */
-    public void initializeGradeScreen(Activity activity) {
-        Context context = activity.getApplicationContext();
-        container = new LinearLayout(context);
-        container.setOrientation(LinearLayout.VERTICAL);
-        container.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-
-        TextView view = new TextView(context);
-        view.setText("#Correct: " + quiz.getNumberCorrect() + "/" + quiz.getNumberOfQuestions());
-        view.setTextAppearance(context, R.style.GradeFont);
-        view.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-        container.addView(view);
-
-        int percent = (int)quiz.getPercentCorrect();
-        view = new TextView(context);
-        view.setText("%" + percent);
-        view.setTextAppearance(context, R.style.GradeFont);
-        view.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-        container.addView(view);
-
-        String letter = "X";
-        if(percent >= 90) {
-            letter = "A";
-        } else if(percent >= 80) {
-            letter = "B";
-        } else if(percent >= 70) {
-            letter = "C";
-        } else if(percent >= 60) {
-            letter = "D";
-        } else {
-            letter = "F";
-        }
-        view = new TextView(context);
-        view.setText("letter grade: " + letter);
-        view.setTextAppearance(context, R.style.GradeFont);
-        view.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-        container.addView(view);
-    }
-
     public void checkButton(int index) {
         for(int i = 0; i < answerButtons.size(); i++) {
             RadioButton b = answerButtons.get(i);
@@ -286,7 +195,7 @@ public class Question {
      * the internal variable of this object.
      */
     public void readFromGUI() {
-        question = answerTexts.get(0).getText().toString();
+        super.readFromGUI();
         answers = new ArrayList<>();
         for(int i = 1; i < answerTexts.size(); i++) {
             answers.add(answerTexts.get(i).getText().toString());
@@ -303,10 +212,11 @@ public class Question {
         }
     }
 
-    //IO
+    // IO
 
     public void writeToStream(DataOutputStream stream) {
         try {
+            stream.writeUTF("MultipleChoice");
             stream.writeUTF(question);
             stream.writeInt(answers.size());
             for(int i = 0; i < answers.size(); i++) {
@@ -332,13 +242,7 @@ public class Question {
         }
     }
 
-    //Accessors
-
-    public LinearLayout getContainer() {
-        return container;
-    }
-
-    public String getQuestion() { return question; }
+    // Accessors
 
     public ArrayList<String> getAnswers() {
         ArrayList<String> retAnswers = new ArrayList<>();
@@ -348,23 +252,16 @@ public class Question {
         return retAnswers;
     }
 
-    public boolean isCorrectAnswer() { return indexOfCorrect == indexOfSubmitted; }
+    public boolean isCorrectAnswer() {
+        if(indexOfCorrect == -1)
+            return false;
+        return indexOfCorrect == indexOfSubmitted;
+    }
 
     public boolean isCorrectAnswer(int i) { return i == indexOfCorrect; }
 
     public int getSelected() {
         return indexOfSelected;
-    }
-
-    public void changeMode(Mode inMode) {
-
-        mode = inMode;
-    }
-
-    //Mutators
-
-    public void setQuiz(Quiz inQuiz) {
-        quiz = inQuiz;
     }
 
     public void addAnswer(String inAnswer) {

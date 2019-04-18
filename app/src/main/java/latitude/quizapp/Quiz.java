@@ -2,11 +2,13 @@ package latitude.quizapp;
 
 import android.app.Activity;
 import android.content.Context;
-import android.util.Log;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.util.ArrayList;
+
+import latitude.quizapp.Question.Question;
+import latitude.quizapp.Question.MultipleChoiceQuestion;
 
 public class Quiz {
 
@@ -22,7 +24,7 @@ public class Quiz {
         filename = "quiz";
         activity = inActivity;
         questions = new ArrayList<>();
-        Question question = new Question();
+        Question question = new MultipleChoiceQuestion();
         question.setQuiz(this);
         questions.add(question);
         currentQuestion = 0;
@@ -109,10 +111,10 @@ public class Quiz {
     }
 
     public void gradeQuiz() {
-        Question gradeScreen = new Question(null, null, 0, this, Question.Mode.GRADE);
+        /**Question gradeScreen = new Question(null, null, 0, this, Question.Mode.GRADE);
         gradeScreen.initializeGradeScreen(activity);
         this.addQuestion(0, gradeScreen);
-        currentQuestion = 0;
+        currentQuestion = 0;**/
     }
 
     //I/O
@@ -148,7 +150,9 @@ public class Quiz {
             size = stream.readInt();
             questions = new ArrayList<>();
             for(int i = 0; i < size; i++) {
-                questions.add(new Question(stream, this, inMode));
+                String type = stream.readUTF();
+                if(type == "MultipleChoice")
+                    questions.add(new MultipleChoiceQuestion(stream, this, inMode));
             }
             for(Question q: questions) {
                 q.setQuiz(this);

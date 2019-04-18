@@ -1,13 +1,15 @@
-package latitude.quizapp;
+package latitude.quizapp.Activity;
 
-import android.support.constraint.ConstraintLayout;
-import android.support.constraint.ConstraintSet;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.GridLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import latitude.quizapp.Question.Question;
+import latitude.quizapp.Quiz;
+import latitude.quizapp.R;
 
 public class QuizActivity extends AppCompatActivity {
 

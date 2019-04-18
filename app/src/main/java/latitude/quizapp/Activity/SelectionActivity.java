@@ -1,4 +1,4 @@
-package latitude.quizapp;
+package latitude.quizapp.Activity;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -22,6 +22,10 @@ import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+
+import latitude.quizapp.Question.Question;
+import latitude.quizapp.Quiz;
+import latitude.quizapp.R;
 
 public class SelectionActivity extends AppCompatActivity {
 
@@ -283,6 +287,13 @@ public class SelectionActivity extends AppCompatActivity {
         if(selectedFilename == null)
             return;
         this.removeQuiz(selectedFilename);
+    }
+
+    public void convertQuizFiles() {
+        ArrayList<String> filenames = this.readFileNames();
+        for(String filename: filenames) {
+            Quiz q = new Quiz(filename, this, Question.Mode.QUIZ);
+        }
     }
 
     //DEBUG

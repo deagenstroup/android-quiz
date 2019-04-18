@@ -1,14 +1,14 @@
-package latitude.quizapp;
+package latitude.quizapp.Activity;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
+
+import latitude.quizapp.Question.Question;
+import latitude.quizapp.Question.ShortAnswerQuestion;
+import latitude.quizapp.R;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -22,6 +22,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        this.test();
     }
 
     public void launchQuiz(View view) {
@@ -56,6 +57,11 @@ public class MainActivity extends AppCompatActivity {
         }
         intent.putExtra("filename", data.getStringExtra("filename"));
         MainActivity.this.startActivity(intent);
+    }
+
+    public void test() {
+        //Question question = new ShortAnswerQuestion();
+        //question.printTest();
     }
 
 }

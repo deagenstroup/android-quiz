@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/background"
-    tools:context="latitude.quizapp.MainActivity">
+    tools:context="latitude.quizapp.Activity.MainActivity">
 
     <LinearLayout
         android:id="@+id/menu_layout"

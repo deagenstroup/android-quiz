@@ -1,9 +1,13 @@
-package latitude.quizapp;
+package latitude.quizapp.Activity;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.GridLayout;
 import android.widget.LinearLayout;
+
+import latitude.quizapp.Question.Question;
+import latitude.quizapp.Quiz;
+import latitude.quizapp.R;
 
 public class GradeActivity extends AppCompatActivity {
 
